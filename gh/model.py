@@ -32,7 +32,17 @@ class AsyncRequest(object):
         return json
 
     def __set__(self, instance, value):
-        self.urls[instance] = value
+        if value is None:
+            self.urls[instance] = value
+            return
+        try:
+            evaluated = type(instance).validate_url(value)
+            if evaluated:
+                self.urls[instance] = evaluated
+            else:
+                raise ValueError("URL %s does not comply to API for %s" % (value, str(type(instance))))
+        except AttributeError:
+            self.urls[instance] = value
 
 class RemoteModel(object):
 
@@ -43,7 +53,17 @@ class RemoteModel(object):
 
     def __init__(self, url=None):
         self.data = url
-        self.url = url
+        self._url = url
+
+    
+    def __geturl(self):
+        return self._url
+
+    def __seturl(self, value):
+        self._url = value
+        self.data = value
+
+    url = property(__geturl, __seturl)
 
     def __dir__(self):
         directory = ["data"]
@@ -63,6 +83,7 @@ class RemoteModel(object):
             return len(self.data)
 
 github_key = None
+github_api_url = "api.github.com"
 
 class GithubModel(RemoteModel):
     def get_headers(self):
@@ -84,16 +105,40 @@ class GithubModel(RemoteModel):
                 self.parse(obj, cache)
         else:
             # it's a dict
+            to_remove = {}
             for field in json:
-                if field[-3:] == "url" and len(field) > 3 and field != "html_url":
-                    print "Found URL field", json[field]
-                    json[field[:-4]] = GithubModel(json[field], self.key, self.agent)
-                    del json[field]
+                if "url" in field and json[field] is not None and GithubModel.validate_url(json[field]):
+                    to_remove[field] = GithubModel(url=json[field], key=self.key, ua=self.agent)
+                else:
+                    if type(json[field]) in (list, dict):
+                        self.parse(json[field], cache)
+            for field in to_remove:
+                del json[field]
+                json[field[:-4]] = to_remove[field]
+
+    @staticmethod
+    def validate_url(url):
+        if "://" not in url:
+            protocol = "https"
+        else:
+            protocol, url = url.split("://")
+
+        if "{/" in url:
+            url = url[:url.index("{/")]
+
+        url_parts = url.split("/")
+
+        if url_parts[0]:
+            if url_parts[0] != github_api_url:
+                return False
+
+        url_parts = url_parts[1:]
+
+        return "{protocol}://{domain}/{path}".format(protocol=protocol, domain=github_api_url, path="/".join(url_parts))
 
     def __init__(self, url=None, key=None, ua="Chaosphere2112GithubModelClient"):
         if key == None:
             key = github_key # let users provide the key to the whole module
-        print url
         self.key = key
         self.agent = ua
         super(GithubModel, self).__init__(url=url)
