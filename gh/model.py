@@ -1,5 +1,45 @@
 import requests
 
+# Use to grab paginated data as needed
+class AsyncList(object):
+    def __init__(self, data, link, requester, headers):
+        self._backing = data
+        self._link = link
+        self._requester = requester
+        self._headers = headers
+        self._parser = None
+
+    def __iter__(self):
+        ind = 0
+        try:
+            while self[ind] and self._link is not None:
+                yield self[ind]
+                ind += 1
+        except IndexError:
+            raise StopIteration
+
+    def __getitem__(self, ind):
+        while ind >= len(self._backing):
+            self.retrieve_next()
+            if self._link is None:
+                break
+        else:
+            return self._backing[ind]
+
+        self._backing[ind]
+
+    def retrieve_next(self):
+        if self._link is None:
+            return
+        next_section = self._requester.get_url(self._link, self._headers)
+        try:
+            if self._parser:
+                self._parser(next_section, self._requester.cache)
+            self._backing.extend(next_section._backing)
+            self._link = next_section._link
+        except AttributeError:
+            self._backing.extend(next_section)
+
 class AsyncRequest(object):
     def __init__(self, retrieved=None):
         self.json = {}
@@ -10,7 +50,10 @@ class AsyncRequest(object):
         if url not in self.json:
             response = requests.get(url, headers=headers)
             if response.status_code == 200:
-                self.cache(url, response.json())
+                data = response.json()
+                if type(data) == list and "next" in response.links:
+                    data = AsyncList(data, response.links["next"]["url"], self, headers)
+                self.cache(url, data)
             else:
                 raise Exception("Unable to reach %s" % url)
         return self.json[url]
@@ -25,6 +68,8 @@ class AsyncRequest(object):
         # allow the owner object to do operations on the JSON object
         try:
             instance.parse(json, self.cache)
+            if type(json) == AsyncList:
+                json._parser = instance.parse
         except AttributeError:
             pass
 
@@ -83,6 +128,14 @@ class RemoteModel(object):
             return len(self.data)
 
 github_key = None
+
+def get_key():
+    return github_key
+
+def set_key(value):
+    global github_key
+    github_key = value
+
 github_api_url = "api.github.com"
 
 class GithubModel(RemoteModel):
@@ -98,7 +151,10 @@ class GithubModel(RemoteModel):
         return headers
 
     def parse(self, json, cache):
-        if type(json) == type([]):
+        if type(json) == AsyncList:
+            # Hack to make it so we don't autoload whole list of items
+            json = json._backing
+        if type(json) == list:
             for obj in json:
                 if "url" in obj:
                     cache(obj["url"], obj)
@@ -107,10 +163,10 @@ class GithubModel(RemoteModel):
             # it's a dict
             to_remove = {}
             for field in json:
-                if "url" in field and json[field] is not None and GithubModel.validate_url(json[field]):
+                if len(field) > 3 and "url" in field and json[field] is not None and GithubModel.validate_url(json[field]):
                     to_remove[field] = GithubModel(url=json[field], key=self.key, ua=self.agent)
                 else:
-                    if type(json[field]) in (list, dict):
+                    if type(json[field]) in (list, dict, AsyncList):
                         self.parse(json[field], cache)
             for field in to_remove:
                 del json[field]
@@ -137,8 +193,8 @@ class GithubModel(RemoteModel):
         return "{protocol}://{domain}/{path}".format(protocol=protocol, domain=github_api_url, path="/".join(url_parts))
 
     def __init__(self, url=None, key=None, ua="Chaosphere2112GithubModelClient"):
-        if key == None:
-            key = github_key # let users provide the key to the whole module
+        if key is None:
+            key = get_key()
         self.key = key
         self.agent = ua
         super(GithubModel, self).__init__(url=url)

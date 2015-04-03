@@ -1,1 +1,1 @@
-from model import GithubModel, github_key
+from model import GithubModel, set_key, get_key
