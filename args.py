@@ -5,4 +5,4 @@ parser.add_argument("milestone", metavar="M", type=float, nargs=1, help="The mil
 
 args = parser.parse_args()
 
-milestone = args.milestone
+milestone = args.milestone[0]

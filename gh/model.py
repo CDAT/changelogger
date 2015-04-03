@@ -18,6 +18,9 @@ class AsyncList(object):
         except IndexError:
             raise StopIteration
 
+    def __len__(self):
+        return len(self._backing)
+
     def __getitem__(self, ind):
         while ind >= len(self._backing):
             self.retrieve_next()
@@ -39,6 +42,7 @@ class AsyncList(object):
             self._link = next_section._link
         except AttributeError:
             self._backing.extend(next_section)
+            self._link = None
 
 class AsyncRequest(object):
     def __init__(self, retrieved=None):
@@ -122,10 +126,13 @@ class RemoteModel(object):
     def __iter__(self):
         if self.data:
             return iter(self.data)
+        else:
+            return iter([])
 
     def __len__(self):
         if self.data:
             return len(self.data)
+        return 0
 
 github_key = None
 
