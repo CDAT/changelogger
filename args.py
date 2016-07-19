@@ -1,7 +1,7 @@
 import argparse
 
 parser = argparse.ArgumentParser(description="Builds a changelog from GitHub activity")
-parser.add_argument("milestone", metavar="M", type=float, nargs=1, help="The milestone to generate a changelog for")
+parser.add_argument("milestone", metavar="M", type=str, nargs=1, help="The milestone to generate a changelog for")
 parser.add_argument("--since", action="store", dest="since", help="Date to filter by (mm/dd/yyyy)", default=None)
 parser.add_argument("--unlabeled", action="store_true", dest="unlabeled", help="Whether to allow issues without a milestone", default=False)
 args = parser.parse_args()

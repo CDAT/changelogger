@@ -3,13 +3,15 @@ from args import milestone, since, unlabeled
 
 repo = gh.GithubModel("/repos/UV-CDAT/uvcdat")
 
-milestones = repo["milestones"]
+milestones = gh.GithubModel("/repos/uv-cdat/uvcdat/milestones?state=all")
 
 found = False
 milestones_to_exclude = []
+milestone_closed = None
 for m in milestones:
     if m["title"] == str(milestone):
         found = m["number"]
+        milestone_closed = m["closed_at"]
     else:
         milestones_to_exclude.append(m["title"])
 
@@ -44,7 +46,7 @@ kind = ["Enhancement", "Bug"]
 category = []
 
 # Ignored
-irrelevant = ["wontfix", "Other", "Duplicate", "Invalid", "Question", "Gatekeeper", "unconfirmed"]
+irrelevant = ["wontfix", "Other", "Duplicate", "Invalid", "Question", "Gatekeeper", "unconfirmed", "0 - Backlog", "1 - Ready", "2 - Working <= 5", "3 - Review", "4 - Done"]
 skip = ["wontfix", "Duplicate", "Invalid", "unconfirmed"]
 
 for label in labels:
@@ -53,11 +55,28 @@ for label in labels:
     category.append(label["name"])
 
 
+def github_date(date):
+    date = date.split("T")[0]
+    year, month, day = [int(p) for p in date.split("-")]
+    return year, month, day
+
+
+def after_milestone(date):
+    closed_year, closed_month, closed_day = github_date(milestone_closed)
+    year, month, day = github_date(date)
+    if year > closed_year:
+        return True
+    if month > closed_month:
+        return True
+    if day > closed_date:
+        return True
+    return False
+
+
 def after_since(date):
     if since is None:
         return True
-    date = date.split("T")[0]
-    year, month, day = [int(p) for p in date.split("-")]
+    year, month, day = github_date(date)
     if year < since.year:
         return False
     if year == since.year and month < since.month:
@@ -67,7 +86,7 @@ def after_since(date):
     return True
 
 issues = gh.GithubModel("/repos/UV-CDAT/uvcdat/issues?%s" % query)
-print "/repos/UV-CDAT/uvcdat/issues?%s" % query
+
 issues_by_number = {}
 for issue in issues:
     closed_date = issue["closed_at"]
@@ -86,6 +105,7 @@ for issue in issues:
                         break
                 else:
                     continue
+
         issues_by_number[str(issue["number"])] = issue
     elif issue["milestone"]["title"] not in milestones_to_exclude:
         issues_by_number[str(issue["number"])] = issue
@@ -146,7 +166,7 @@ for n in pull_requests:
     if associated is False:
         orphan_pr.append(n)
 
-print "## Closed Issues"
+print "## Closed Issues\n"
 
 categories = sorted(issues_sorted.keys())
 for cat in categories:
@@ -178,6 +198,8 @@ gatekeepers = gh.GithubModel("/repos/UV-CDAT/uvcdat/issues?state=open&labels=Gat
 if len(gatekeepers):
     print "## OPEN GATEKEEPERS"
     for issue in gatekeepers:
+        if after_milestone(issue["created_at"]):
+            continue
         print " * [{title}]({url})".format(title=issue["title"], url=issue["html_url"])
     print ""
 
@@ -186,11 +208,15 @@ print "## Merged Pull Requests\n"
 orphan_pr.sort(key=lambda n: int(n))
 for pr in orphan_pr:
     pr = issues_by_number[pr]
+    if after_milestone(pr["created_at"]):
+        continue
     values = {
         "number": pr["number"],
         "title": pr["title"],
         "url": pr["html_url"],
     }
+    if u"\u2026" in values["title"]:
+        values["title"] = values["title"].replace(u"\u2026", u"...")
     print " * [#{number}: {title}]({url})".format(**values).encode("ascii", "xmlcharrefreplace")
 
 print ""
@@ -206,6 +232,8 @@ other = []
 
 # Filter out unimportant/Categorize by severity
 for bug in open_bugs:
+    if after_milestone(bug["created_at"]):
+        continue
     for label in bug["labels"]:
         if label["name"] in irrelevant:
             break
