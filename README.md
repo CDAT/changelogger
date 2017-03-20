@@ -1,7 +1,7 @@
 # changelogger
 Changelog generator for UV-CDAT
 
-Requires an environment variable (`GITHUB_KEY`) to be set to properly function; if it isn't Github will throttle your API requests.
+Requires an environment variable (`CHANGELOG_GITHUB_TOKEN`) to be set to properly function; if it isn't Github will throttle your API requests.
 
 To get set up:
 
