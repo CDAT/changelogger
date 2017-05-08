@@ -11,8 +11,14 @@ parser.add_argument("-m","--milestone", metavar="M", type=str, nargs=1, help="Th
 parser.add_argument("-s","--since", action="store", dest="since", help="Date to filter by (mm/dd/yyyy)", default=None)
 parser.add_argument("-u","--unlabeled", action="store_true", dest="unlabeled", help="Whether to allow issues without a milestone", default=False)
 parser.add_argument("-r","--repo",help="repo to generate log for",default="uvcdat")
+parser.add_argument("-f","--file",help="outputfile",default=None)
 
 args = parser.parse_args()
+
+if args.file is None:
+    args.file = sys.stdout
+else:
+    args.file = open(args.file,"w")
 
 milestone = args.milestone[0]
 
@@ -40,7 +46,7 @@ for m in milestones:
         milestones_to_exclude.append(m["title"])
 
 if found is False:
-    print("Unable to find milestone %s" % milestone)
+    print("Unable to find milestone %s" % milestone,file=args.file)
     sys.exit(1)
 
 # Assemble issues query
@@ -91,7 +97,6 @@ def github_date(date):
 
 
 def after_milestone(date):
-    print("DATE:",date)
     closed_year, closed_month, closed_day = github_date(milestone_closed)
     year, month, day = github_date(date)
     if year > closed_year:
@@ -196,12 +201,12 @@ for n in pull_requests:
     if associated is False:
         orphan_pr.append(n)
 
-print("## Closed Issues\n")
+print("## Closed Issues\n",file=args.file)
 
 categories = sorted(issues_sorted.keys())
 for cat in categories:
-    print("### {category}".format(category=cat))
-    print("")
+    print("### {category}".format(category=cat),file=args.file)
+    print("",file=args.file)
     # Sort the issues by bug vs enhancement
     cat_issues = issues_sorted[cat]
     sorted_issues = sorted(cat_issues, key=lambda n: issues_kinds[n])
@@ -219,22 +224,22 @@ for cat in categories:
         else:
             message = " * **{bug_or_enh}**: [{title}]({url})".format(**values).encode("ascii", "xmlcharrefreplace")
 
-        print(message)
-    print("")
+        print(message,file=args.file)
+    print("",file=args.file)
 
 
 gatekeepers = gh.GithubModel("/repos/UV-CDAT/%s/issues?state=open&labels=Gatekeeper" % args.repo)
 
 if len(gatekeepers):
-    print("## OPEN GATEKEEPERS")
+    print("## OPEN GATEKEEPERS",file=args.file)
     for issue in gatekeepers:
         if after_milestone(issue["created_at"]):
             continue
-        print(" * [{title}]({url})".format(title=issue["title"], url=issue["html_url"]))
-    print("")
+        print(" * [{title}]({url})".format(title=issue["title"], url=issue["html_url"]),file=args.file)
+    print("",file=args.file)
 
 
-print("## Merged Pull Requests\n")
+print("## Merged Pull Requests\n",file=args.file)
 orphan_pr.sort(key=lambda n: int(n))
 for pr in orphan_pr:
     pr = issues_by_number[pr]
@@ -247,12 +252,12 @@ for pr in orphan_pr:
     }
     if "\u2026" in values["title"]:
         values["title"] = values["title"].replace("\u2026", "...")
-    print(" * [#{number}: {title}]({url})".format(**values).encode("ascii", "xmlcharrefreplace"))
+    print(" * [#{number}: {title}]({url})".format(**values).encode("ascii", "xmlcharrefreplace"),file=args.file)
 
-print("")
+print("",file=args.file)
 
 
-print("## Known Bugs\n")
+print("## Known Bugs\n",file=args.file)
 
 open_bugs = gh.GithubModel("/repos/UV-CDAT/%s/issues?state=open&labels=Bug" % args.repo)
 
@@ -282,23 +287,23 @@ for bug in open_bugs:
 
 
 if len(critical_issues) > 0:
-    print("### Critical\n")
+    print("### Critical\n",file=args.file)
     for issue in critical_issues:
-        print(" * [{title}]({url})".format(title=issue["title"].encode("ascii", "xmlcharrefreplace"), url=issue["html_url"].encode("ascii", "xmlcharrefreplace")).encode("ascii", "xmlcharrefreplace"))
-    print("")
+        print(" * [{title}]({url})".format(title=issue["title"].encode("ascii", "xmlcharrefreplace"), url=issue["html_url"].encode("ascii", "xmlcharrefreplace")).encode("ascii", "xmlcharrefreplace"),file=args.file)
+    print("",file=args.file)
 
 if len(high_issues) > 0:
-    print("### High Priority\n")
+    print("### High Priority\n",file=args.file)
     for issue in high_issues:
-        print(" * [{title}]({url})".format(title=issue["title"].encode("ascii", "xmlcharrefreplace"), url=issue["html_url"].encode("ascii", "xmlcharrefreplace")).encode("ascii", "xmlcharrefreplace"))
-    print("")
+        print(" * [{title}]({url})".format(title=issue["title"].encode("ascii", "xmlcharrefreplace"), url=issue["html_url"].encode("ascii", "xmlcharrefreplace")).encode("ascii", "xmlcharrefreplace"),file=args.file)
+    print("",file=args.file)
 
 if len(other) > 0:
-    print("### Other\n")
+    print("### Other\n",file=args.file)
     for issue in other:
-        print(" * [{title}]({url})".format(title=issue["title"].encode("ascii", "xmlcharrefreplace"), url=issue["html_url"].encode("ascii", "xmlcharrefreplace")).encode("ascii", "xmlcharrefreplace"))
-    print("")
+        print(" * [{title}]({url})".format(title=issue["title"].encode("ascii", "xmlcharrefreplace"), url=issue["html_url"].encode("ascii", "xmlcharrefreplace")).encode("ascii", "xmlcharrefreplace"),file=args.file)
+    print("",file=args.file)
 
 
 if len(high_issues) == 0 and len(critical_issues) == 0 and len(other) == 0:
-    print("No known issues!")
+    print("No known issues!",file=args.file)
