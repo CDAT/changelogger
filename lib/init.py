@@ -1,4 +1,4 @@
-import gh
+from . import gh
 import os
 import sys
 from changelogger import gh
