@@ -45,6 +45,9 @@ def after_since(date):
     return True
 
 def process_repo(repository):
+    print(" ",file=args.file)
+    print("# %s" % repository,file=args.file)
+    print(" ",file=args.file)
     repo = gh.GithubModel("/repos/UV-CDAT/%s" % repository)
     milestones = gh.GithubModel("/repos/uv-cdat/%s/milestones?state=all" % repository)
 
@@ -310,5 +313,6 @@ if __name__ == "__main__":
 
     unlabeled = args.unlabeled
 
+    print("# Releases Notes from Github Repos for Milestone: %s" % milestone, file=args.file)
     for repo in args.repos:
         process_repo(repo)
