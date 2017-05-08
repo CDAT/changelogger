@@ -1,5 +1,7 @@
-import gh, os
+import gh
+import os
 import sys
+from changelogger import gh
 
 if sys.version_info < (2,7,9):
 	import urllib3.contrib.pyopenssl

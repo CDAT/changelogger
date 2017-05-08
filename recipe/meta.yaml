@@ -3,7 +3,7 @@ package:
     version: 0.10
 
 source:
-    git_rev: master
+    git_rev: cleanup
     git_url: git://github.com/UV-CDAT/changelogger.git
 
 build:
@@ -22,9 +22,8 @@ requirements:
    - enum34
    - gnureadline
    - ipython
-   - markdown2
    - ndg-httpsclient
-   - pyOpenSSL
+   - pyopenssl
    - pyasn1
    - pycparser
    - requests

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
-from changelogger import init, gh, sys
-from changelogger.args import milestone, since, unlabeled
+from changelogger import init, gh
+import sys
+from changelogger.args import milestone, since, unlabeled, args
+import time
 
 repo = gh.GithubModel("/repos/UV-CDAT/%s" % args.repo)
 
@@ -57,12 +59,19 @@ for label in labels:
 
 
 def github_date(date):
-    date = date.split("T")[0]
-    year, month, day = [int(p) for p in date.split("-")]
+    if date is not None:
+        date = date.split("T")[0]
+        year, month, day = [int(p) for p in date.split("-")]
+    else:
+        gm = time.gmtime()
+        year = gm.tm_year
+        month = gm.tm_mon
+        day = gm.tm_mday
     return year, month, day
 
 
 def after_milestone(date):
+    print "DATE:",date
     closed_year, closed_month, closed_day = github_date(milestone_closed)
     year, month, day = github_date(date)
     if year > closed_year:

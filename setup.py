@@ -4,6 +4,7 @@ import sys
 
 Version = "0.1"
 packages = {'changelogger': 'lib',
+            'changelogger.gh':'lib/gh',
             }
 scripts = ['scripts/changelog',
            ]
