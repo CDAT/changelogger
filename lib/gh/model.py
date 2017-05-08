@@ -117,7 +117,7 @@ class RemoteModel(object):
     def __dir__(self):
         directory = ["data"]
         if self.data:
-            directory.extend(self.data.json().keys())
+            directory.extend(list(self.data.json().keys()))
 
     def __getitem__(self, key):
         if self.data:
