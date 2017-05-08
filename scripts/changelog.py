@@ -1,9 +1,10 @@
-import init, gh, sys
-from args import milestone, since, unlabeled
+#!/usr/bin/env python
+from changelogger import init, gh, sys
+from changelogger.args import milestone, since, unlabeled
 
-repo = gh.GithubModel("/repos/UV-CDAT/uvcdat")
+repo = gh.GithubModel("/repos/UV-CDAT/%s" % args.repo)
 
-milestones = gh.GithubModel("/repos/uv-cdat/uvcdat/milestones?state=all")
+milestones = gh.GithubModel("/repos/uv-cdat/%s/milestones?state=all" % args.repo)
 
 found = False
 milestones_to_exclude = []
@@ -85,7 +86,7 @@ def after_since(date):
         return False
     return True
 
-issues = gh.GithubModel("/repos/UV-CDAT/uvcdat/issues?%s" % query)
+issues = gh.GithubModel("/repos/UV-CDAT/%s/issues?%s" % (args.repo,query))
 
 issues_by_number = {}
 for issue in issues:
@@ -193,7 +194,7 @@ for cat in categories:
     print ""
 
 
-gatekeepers = gh.GithubModel("/repos/UV-CDAT/uvcdat/issues?state=open&labels=Gatekeeper")
+gatekeepers = gh.GithubModel("/repos/UV-CDAT/%s/issues?state=open&labels=Gatekeeper" % args.repo)
 
 if len(gatekeepers):
     print "## OPEN GATEKEEPERS"
@@ -224,7 +225,7 @@ print ""
 
 print "## Known Bugs\n"
 
-open_bugs = gh.GithubModel("/repos/UV-CDAT/uvcdat/issues?state=open&labels=Bug")
+open_bugs = gh.GithubModel("/repos/UV-CDAT/%s/issues?state=open&labels=Bug" % args.repo)
 
 critical_issues = []
 high_issues = []
