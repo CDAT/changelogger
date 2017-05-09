@@ -45,9 +45,6 @@ def after_since(date):
     return True
 
 def process_repo(repository):
-    print(" ",file=args.file)
-    print("# %s" % repository,file=args.file)
-    print(" ",file=args.file)
     repo = gh.GithubModel("/repos/UV-CDAT/%s" % repository)
     milestones = gh.GithubModel("/repos/uv-cdat/%s/milestones?state=all" % repository)
 
@@ -63,7 +60,7 @@ def process_repo(repository):
 
     if found is False:
         print("Unable to find milestone %s" % milestone,file=args.file)
-        sys.exit(1)
+        return
 
     # Assemble issues query
 
@@ -95,12 +92,19 @@ def process_repo(repository):
     skip = ["wontfix", "Duplicate", "Invalid", "unconfirmed"]
 
     for label in labels:
-        if label["name"] in severity or label["name"] in kind or label["name"] in irrelevant:
+        if label["name"] in severity or label["name"] in irrelevant:
             continue
         category.append(label["name"])
 
 
     issues = gh.GithubModel("/repos/UV-CDAT/%s/issues?%s" % (repository,query))
+    if len(issues) == 0:
+        print("No issues found for milestone %s of repo %s" % (milestone,repository))
+        return
+
+    print(" ",file=args.file)
+    print("# %s" % repository,file=args.file)
+    print(" ",file=args.file)
 
     issues_by_number = {}
     for issue in issues:
@@ -133,7 +137,6 @@ def process_repo(repository):
 
     for n in issues:
         issue = issues_by_number[n]
-        print(n,dir(issue))
         issue_labels = issue["labels"]
         labels = [l["name"] for l in issue_labels]
         categorized = False
@@ -294,7 +297,7 @@ if __name__ == "__main__":
     parser.add_argument("-m","--milestone", metavar="M", type=str, nargs=1, help="The milestone to generate a changelog for")
     parser.add_argument("-s","--since", action="store", dest="since", help="Date to filter by (mm/dd/yyyy)", default=None)
     parser.add_argument("-u","--unlabeled", action="store_true", dest="unlabeled", help="Whether to allow issues without a milestone", default=False)
-    parser.add_argument("-r","--repos",help="repo to generate log for",default=["uvcdat"],nargs="*")
+    parser.add_argument("-r","--repos",help="repo to generate log for",default=["uvcdat","cdms","vcs","cdutil","genutil","dv3d","vcsaddons","cdtime"],nargs="*")
     parser.add_argument("-f","--file",help="outputfile",default=None)
 
     args = parser.parse_args()
