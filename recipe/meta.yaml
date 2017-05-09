@@ -17,19 +17,7 @@ requirements:
 
   run:
    - python
-   - cffi
-   - cryptography
-   - enum34
-   - gnureadline
-   - ipython
-   - ndg-httpsclient
-   - pyopenssl
-   - pyasn1
-   - pycparser
    - requests
-   - six
-   - urllib3
-   - wsgiref
 
 about:
     home:  http://gitub.com/UV-CDAT/cdms

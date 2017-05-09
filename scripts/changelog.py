@@ -133,6 +133,7 @@ def process_repo(repository):
 
     for n in issues:
         issue = issues_by_number[n]
+        print(n,dir(issue))
         issue_labels = issue["labels"]
         labels = [l["name"] for l in issue_labels]
         categorized = False
