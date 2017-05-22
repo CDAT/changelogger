@@ -311,7 +311,7 @@ if __name__ == "__main__":
         print("Please set CHANGELOG_GITHUB_TOKEN env variable or pass via `-g` option")
         sys.exit(1)
 
-    gh.set_key(os.environ["CHANGELOG_GITHUB_TOKEN"])
+    gh.set_key(github_token)
     if args.file is None:
         args.file = sys.stdout
     else:
