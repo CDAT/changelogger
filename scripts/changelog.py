@@ -5,6 +5,7 @@ import sys
 import time
 import argparse
 import urllib
+import os
 from datetime import date
 
 
@@ -299,9 +300,18 @@ if __name__ == "__main__":
     parser.add_argument("-u","--unlabeled", action="store_true", dest="unlabeled", help="Whether to allow issues without a milestone", default=False)
     parser.add_argument("-r","--repos",help="repo to generate log for",default=["uvcdat","cdms","vcs","cdutil","genutil","dv3d","vcsaddons","cdtime"],nargs="*")
     parser.add_argument("-f","--file",help="outputfile",default=None)
+    parser.add_argument("-g","--github-token",help="Github Token",default=None)
 
     args = parser.parse_args()
 
+    github_token = os.environ.get("CHANGELOG_GITHUB_TOKEN",None)
+    if args.github_token is not None:
+        github_token = args.github_token
+    if github_token is None:
+        print("Please set CHANGELOG_GITHUB_TOKEN env variable or pass via `-g` option")
+        sys.exit(1)
+
+    gh.set_key(os.environ["CHANGELOG_GITHUB_TOKEN"])
     if args.file is None:
         args.file = sys.stdout
     else:
