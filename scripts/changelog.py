@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
-from changelogger import init, gh
 import sys
+from changelogger import init, gh
 import time
 import argparse
 import urllib
@@ -46,8 +46,8 @@ def after_since(date):
     return True
 
 def process_repo(repository):
-    repo = gh.GithubModel("/repos/UV-CDAT/%s" % repository)
-    milestones = gh.GithubModel("/repos/uv-cdat/%s/milestones?state=all" % repository)
+    repo = gh.GithubModel("/repos/cdat/%s" % repository)
+    milestones = gh.GithubModel("/repos/cdat/%s/milestones?state=all" % repository)
 
     found = False
     milestones_to_exclude = []
@@ -98,7 +98,7 @@ def process_repo(repository):
         category.append(label["name"])
 
 
-    issues = gh.GithubModel("/repos/UV-CDAT/%s/issues?%s" % (repository,query))
+    issues = gh.GithubModel("/repos/cdat/%s/issues?%s" % (repository,query))
     if len(issues) == 0:
         print("No issues found for milestone %s of repo %s" % (milestone,repository))
         return
@@ -213,7 +213,7 @@ def process_repo(repository):
         print("",file=args.file)
 
 
-    gatekeepers = gh.GithubModel("/repos/UV-CDAT/%s/issues?state=open&labels=Gatekeeper" % repository)
+    gatekeepers = gh.GithubModel("/repos/cdat/%s/issues?state=open&labels=Gatekeeper" % repository)
 
     if len(gatekeepers):
         print("## OPEN GATEKEEPERS",file=args.file)
@@ -244,7 +244,7 @@ def process_repo(repository):
 
     print("## Known Bugs\n",file=args.file)
 
-    open_bugs = gh.GithubModel("/repos/UV-CDAT/%s/issues?state=open&labels=Bug" % repository)
+    open_bugs = gh.GithubModel("/repos/cdat/%s/issues?state=open&labels=Bug" % repository)
 
     critical_issues = []
     high_issues = []
@@ -298,7 +298,7 @@ if __name__ == "__main__":
     parser.add_argument("-m","--milestone", metavar="M", type=str, nargs=1, help="The milestone to generate a changelog for",required=True)
     parser.add_argument("-s","--since", action="store", dest="since", help="Date to filter by (mm/dd/yyyy)", default=None)
     parser.add_argument("-u","--unlabeled", action="store_true", dest="unlabeled", help="Whether to allow issues without a milestone", default=False)
-    parser.add_argument("-r","--repos",help="repo to generate log for",default=["uvcdat","cdat_info","cdms","vcs","cdutil","genutil","dv3d","vcsaddons","cdtime"],nargs="*")
+    parser.add_argument("-r","--repos",help="repo to generate log for",default=["cdat","cdat_info","cdms","vcs","cdutil","genutil","dv3d","vcsaddons","cdtime"],nargs="*")
     parser.add_argument("-f","--file",help="outputfile",default=None)
     parser.add_argument("-g","--github-token",help="Github Token",default=None)
 
