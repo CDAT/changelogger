@@ -1,5 +1,5 @@
 # changelogger
-Changelog generator for UV-CDAT
+Changelog generator for CDAT
 
 Requires an environment variable (`CHANGELOG_GITHUB_TOKEN`) to be set to properly function; if it isn't Github will throttle your API requests.
 
@@ -15,5 +15,5 @@ To get set up:
     ```
 3. Run the script (pass in which milestone you want the changelog for)
     ```
-    $ python changelogger.py 2.2 > changelog.md
+    $ python changelogger.py 8.0 > changelog.md
     ```
