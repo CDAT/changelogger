@@ -4,7 +4,7 @@ package:
 
 source:
     git_rev: cleanup
-    git_url: git://github.com/UV-CDAT/changelogger.git
+    git_url: git://github.com/CDAT/changelogger.git
 
 build:
   number: 0
@@ -20,6 +20,6 @@ requirements:
    - requests
 
 about:
-    home:  http://gitub.com/UV-CDAT/cdms
+    home:  http://gitub.com/CDAT/cdms
 
 
