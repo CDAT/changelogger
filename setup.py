@@ -11,7 +11,7 @@ scripts = ['scripts/changelog',
 
 setup(name='changelogger',
       version=Version,
-      url='http://github.com/uv-cdat/changelogger',
+      url='http://github.com/cdat/changelogger',
       packages=packages.keys(),
       package_dir=packages,
       scripts=scripts,

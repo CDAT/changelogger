@@ -298,7 +298,7 @@ if __name__ == "__main__":
     parser.add_argument("-m","--milestone", metavar="M", type=str, nargs=1, help="The milestone to generate a changelog for",required=True)
     parser.add_argument("-s","--since", action="store", dest="since", help="Date to filter by (mm/dd/yyyy)", default=None)
     parser.add_argument("-u","--unlabeled", action="store_true", dest="unlabeled", help="Whether to allow issues without a milestone", default=False)
-    parser.add_argument("-r","--repos",help="repo to generate log for",default=["cdat","cdat_info","cdms","vcs","cdutil","genutil","dv3d","vcsaddons","cdtime"],nargs="*")
+    parser.add_argument("-r","--repos",help="repo to generate log for",default=["cdat","cdat_info","cdms","vcs","vcdat","cdutil","genutil","dv3d","vcsaddons","cdtime"],nargs="*")
     parser.add_argument("-f","--file",help="outputfile",default=None)
     parser.add_argument("-g","--github-token",help="Github Token",default=None)
 
